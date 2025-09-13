@@ -1,0 +1,45 @@
+.pokemon-card-img {
+    width: 100px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pokemon-sprite {
+    width: 48px;
+    height: 48px;
+}
+
+.accordion-button {
+    font-weight: bold;
+}
+
+.list-group-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.badge {
+    font-size: 0.9em;
+}
+
+.card-img-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+}
+
+/* Stil für die Kartenansicht */
+.card-preview {
+    max-width: 200px;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease;
+}
+
+.card-preview:hover {
+    transform: scale(1.05);
+}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Verbotene Pokémon</h2>
+
+{% if banned_pokemon %}
+<div class="list-group">
+    {% for pokemon in banned_pokemon %}
+    <div class="list-group-item">
+        <strong>{{ pokemon.pokemon_name }}</strong> - {{ pokemon.reason }}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    Keine verbotenen Pokémon vorhanden.
+</div>
+{% endif %}
+
+<a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Zurück</a>
+{% endblock %}

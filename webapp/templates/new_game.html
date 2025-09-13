@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Neues Spiel starten</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label for="player_names" class="form-label">Spielernamen (durch Komma getrennt)</label>
+        <input type="text" class="form-control" id="player_names" name="player_names" 
+               value="Player1,Player2,Player3" required>
+        <div class="form-text">Gib die Namen der Spieler durch Komma getrennt ein.</div>
+    </div>
+    
+    <div class="alert alert-warning">
+        <strong>Achtung!</strong> Beim Start eines neuen Spiels werden alle vorhandenen Daten gelöscht!
+    </div>
+    
+    <button type="submit" class="btn btn-danger">Neues Spiel starten</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Abbrechen</a>
+</form>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <h2>Routen</h2>
+        <div class="list-group">
+            {% for route in routes %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                        {{ route.name }} 
+                        <span class="badge bg-{{ 'success' if route.status == 'open' else 'danger' }} rounded-pill">
+                            {{ '🟢' if route.status == 'open' else '🔴' }}
+                        </span>
+                    </span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <h2>Aktive Pokémon</h2>
+        <div class="list-group">
+            {% for trainer in trainers %}
+                {% set active = active_pokemon[trainer.id] %}
+                <div class="list-group-item">
+                    <strong>{{ trainer.name }}:</strong>
+                    {% if active %}
+                        <span class="{{ 'text-danger' if active.status == 'dead' else 'text-success' }}">
+                            {{ active.name }} {{ '💀' if active.status == 'dead' else '❤️' }}
+                        </span>
+                        <img src="{{ url_for('get_tcg_image', pokemon_name=active.name) }}" 
+                             alt="{{ active.name }}" class="pokemon-card-img"
+                             onerror="this.onerror=null; this.src='https://placehold.co/100x140/ef4444/white?text=❓';">
+                    {% else %}
+                        <span class="text-muted">Kein aktives Pokémon</span>
+                    {% endif %}
+                    <a href="{{ url_for('change_active_pokemon', trainer_id=trainer.id) }}" 
+                       class="btn btn-sm btn-outline-primary float-end">Ändern</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <h2>Alle Pokémon</h2>
+        <div class="accordion" id="pokemonAccordion">
+            {% set current_route = None %}
+            {% for pokemon in pokemon_list %}
+                {% if current_route != pokemon.route_name %}
+                    {% if current_route %}</div></div></div>{% endif %}
+                    {% set current_route = pokemon.route_name %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button {{ 'collapsed' if not loop.first }}" type="button" 
+                                    data-bs-toggle="collapse" data-bs-target="#route{{ pokemon.route_id }}">
+                                Route {{ pokemon.route_name }} 
+                                <span class="badge bg-{{ 'success' if pokemon.status == 'alive' else 'danger' }} ms-2">
+                                    {{ '🟢' if pokemon.status == 'alive' else '🔴' }}
+                                </span>
+                            </button>
+                        </h2>
+                        <div id="route{{ pokemon.route_id }}" class="accordion-collapse collapse {{ 'show' if loop.first }}" 
+                             data-bs-parent="#pokemonAccordion">
+                            <div class="accordion-body">
+                {% endif %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="{{ 'text-danger' if pokemon.status == 'dead' else 'text-success' }}">
+                        {{ pokemon.name }} ({{ pokemon.trainer_name }}) 
+                        {{ '💀' if pokemon.status == 'dead' else '❤️' }}
+                    </span>
+                    <img src="{{ url_for('get_tcg_image', pokemon_name=pokemon.name) }}" 
+                         alt="{{ pokemon.name }}" class="pokemon-card-img"
+                         onerror="this.onerror=null; this.src='https://placehold.co/100x140/ef4444/white?text=❓';">
+                </div>
+            {% endfor %}
+            {% if current_route %}</div></div></div>{% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

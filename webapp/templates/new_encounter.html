@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Neue Begegnung hinzufügen</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label for="route_name" class="form-label">Routenname</label>
+        <input type="text" class="form-control" id="route_name" name="route_name" required>
+    </div>
+    
+    {% for i in range(3) %}
+    <div class="card mb-3">
+        <div class="card-header">Pokémon {{ i+1 }}</div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="trainer_{{ i }}" class="form-label">Trainer</label>
+                <select class="form-select" id="trainer_{{ i }}" name="trainer_{{ i }}" required>
+                    <option value="">Trainer wählen</option>
+                    {% for trainer in trainers %}
+                    <option value="{{ trainer.id }}">{{ trainer.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="pokemon_{{ i }}" class="form-label">Pokémon Name</label>
+                <input type="text" class="form-control" id="pokemon_{{ i }}" name="pokemon_{{ i }}" required>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <button type="submit" class="btn btn-primary">Begegnung hinzufügen</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Abbrechen</a>
+</form>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Aktives Pokémon für {{ trainer.name }} ändern</h2>
+
+{% if pokemon_list %}
+<form method="POST">
+    <div class="mb-3">
+        <label for="pokemon_id" class="form-label">Pokémon wählen</label>
+        <select class="form-select" id="pokemon_id" name="pokemon_id" required>
+            <option value="">Pokémon wählen</option>
+            {% for pokemon in pokemon_list %}
+            <option value="{{ pokemon.id }}">{{ pokemon.name }} (Route {{ pokemon.route_name }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Aktives Pokémon setzen</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Abbrechen</a>
+</form>
+{% else %}
+<div class="alert alert-warning">
+    {{ trainer.name }} hat keine lebenden Pokémon.
+</div>
+<a href="{{ url_for('index') }}" class="btn btn-secondary">Zurück</a>
+{% endif %}
+{% endblock %}

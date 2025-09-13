@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Pokémon-Karten Suche</h2>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="input-group">
+            <input type="text" class="form-control" id="searchInput" placeholder="Pokémon-Name eingeben...">
+            <button class="btn btn-primary" type="button" id="searchButton">Suchen</button>
+        </div>
+    </div>
+</div>
+
+<div id="searchResults" class="row">
+    <!-- Suchergebnisse werden hier angezeigt -->
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchButton = document.getElementById('searchButton');
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    
+    searchButton.addEventListener('click', function() {
+        const query = searchInput.value.trim();
+        if (query) {
+            searchCards(query);
+        }
+    });
+    
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const query = searchInput.value.trim();
+            if (query) {
+                searchCards(query);
+            }
+        }
+    });
+    
+    function searchCards(query) {
+        fetch(`/api/tcg/search/${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                searchResults.innerHTML = '';
+                
+                if (data.length === 0) {
+                    searchResults.innerHTML = '<div class="col-12"><p>Keine Karten gefunden.</p></div>';
+                    return;
+                }
+                
+                data.forEach(card => {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-3 col-sm-6 mb-4';
+                    col.innerHTML = `
+                        <div class="card">
+                            <img src="${card.image_url}" class="card-img-top card-preview" alt="${card.name}">
+                            <div class="card-body">
+                                <h5 class="card-title">${card.name}</h5>
+                                <p class="card-text">ID: ${card.id}</p>
+                            </div>
+                        </div>
+                    `;
+                    searchResults.appendChild(col);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                searchResults.innerHTML = '<div class="col-12"><p>Fehler bei der Suche.</p></div>';
+            });
+    }
+});
+</script>
+{% endblock %}

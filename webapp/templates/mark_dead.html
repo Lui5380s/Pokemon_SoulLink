@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Pokémon als tot markieren</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label for="routeSelect" class="form-label">Route wählen</label>
+        <select class="form-select" id="routeSelect" name="route_id" required>
+            <option value="">Route wählen</option>
+            {% for route in routes %}
+            <option value="{{ route.id }}">{{ route.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="mb-3">
+        <label for="pokemonSelect" class="form-label">Pokémon wählen</label>
+        <select class="form-select" id="pokemonSelect" name="pokemon_id" required disabled>
+            <option value="">Zuerst Route wählen</option>
+        </select>
+    </div>
+    
+    <button type="submit" class="btn btn-danger">Pokémon als tot markieren</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Abbrechen</a>
+</form>
+
+<script>
+// JavaScript für dynamisches Laden der Pokémon basierend auf der Route
+document.getElementById('routeSelect').addEventListener('change', function() {
+    const routeId = this.value;
+    const pokemonSelect = document.getElementById('pokemonSelect');
+    
+    if (routeId) {
+        fetch(`/get_pokemon/${routeId}`)
+            .then(response => response.json())
+            .then(data => {
+                pokemonSelect.innerHTML = '<option value="">Pokémon wählen</option>';
+                data.forEach(pokemon => {
+                    const option = document.createElement('option');
+                    option.value = pokemon.id;
+                    option.textContent = `${pokemon.name} (${pokemon.trainer_name})`;
+                    pokemonSelect.appendChild(option);
+                });
+                pokemonSelect.disabled = false;
+            })
+            .catch(error => console.error('Error:', error));
+    } else {
+        pokemonSelect.innerHTML = '<option value="">Zuerst Route wählen</option>';
+        pokemonSelect.disabled = true;
+    }
+});
+</script>
+{% endblock %}
