@@ -38,4 +38,5 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Debug-Modus nur lokal und nur per Umgebungsvariable (FLASK_DEBUG=1) aktivieren
+    app.run(debug=os.getenv("FLASK_DEBUG") == "1", host='127.0.0.1', port=5000)

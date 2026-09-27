@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Lokale Daten und Konfiguration
+data/
+.env
+
+# System
+.DS_Store
+Thumbs.db

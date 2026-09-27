@@ -1,45 +1,64 @@
-# Pokémon Link Manager
+# Pokémon Soul Link Manager
 
-Ein Tool zum Verwalten von Pokémon-Begegnungen für Soul Link Nuzlocke Challenges.
+Eine Flask-Web-App zum Verwalten von **Soul Link Nuzlocke**-Runs mit bis zu drei Spielern. Die App merkt sich Begegnungen pro Route, sperrt bereits gefangene Pokémon samt ihrer Entwicklungslinie und setzt die Soul-Link-Regel automatisch um: Stirbt ein Pokémon, sterben alle Pokémon derselben Route.
+
+![Screenshot](docs/screenshot.jpg)
 
 ## Funktionen
 
-- **Pokémon-Eindeutigkeit**: Jedes Pokémon kann nur einmal im gesamten Run gefangen werden
-- **Soul Link Mechanik**: Wenn ein Pokémon stirbt, sterben alle Pokémon auf derselben Route
-- **Routen-Management**: Geschlossene Routen können nicht mehr verwendet werden
-- **GUI-Oberfläche**: Benutzerfreundliche Oberfläche mit PyQt5
+- **Neues Spiel**: Spieler anlegen (kommagetrennt), alle bisherigen Daten werden zurückgesetzt
+- **Neue Begegnung**: Pro Route ein Pokémon je Spieler eintragen
+- **Sperrliste**: Gefangene Pokémon und ihre komplette Entwicklungslinie (über die [PokéAPI](https://pokeapi.co/)) können nicht erneut gefangen werden
+- **Soul Link**: Wird ein Pokémon als tot markiert, sterben alle Pokémon der Route und die Route wird geschlossen
+- **Aktive Pokémon**: Übersicht, welches Pokémon jeder Spieler gerade nutzt – nach einem Tod wird direkt zur Auswahl eines neuen weitergeleitet
+- **Sammelkarten**: Zu jedem Pokémon wird ein passendes Kartenbild von [TCGdex](https://tcgdex.dev/) angezeigt, außerdem gibt es eine Karten-Suche
+
+## Soul-Link-Regeln
+
+1. **Jedes Pokémon nur einmal**: Fängt ein Spieler Pikachu, kann niemand mehr Pichu, Pikachu oder Raichu fangen.
+2. **Routen sind verlinkt**: Alle auf einer Route gefangenen Pokémon teilen ihr Schicksal. Stirbt eins, sterben alle.
+3. **Geschlossene Routen**: Auf einer Route mit toten Pokémon sind keine neuen Begegnungen mehr möglich.
 
 ## Installation
 
-1. Installiere die Abhängigkeiten: `pip install -r requirements.txt`
-2. Führe `python src/run_gui.py` aus
+Voraussetzung: Python 3.10 oder neuer.
 
-## Soul Link Regeln
+```bash
+git clone https://github.com/Lui5380s/Pokemon_SoulLink.git
+cd Pokemon_SoulLink
+python -m venv .venv
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python run.py
+```
 
-1. **Pokémon-Eindeutigkeit**: Jedes Pokémon kann nur einmal gefangen werden
-   - Wenn Player1 Pikachu fängt, kann kein anderer Spieler Pikachu fangen
-   - Auch Entwicklungen (Vor- und Weiterentwicklungen) sind gesperrt
-   
-2. **Route-Linking**: Alle Pokémon auf einer Route sind verlinkt
-   - Stirbt ein Pokémon, sterben alle Pokémon auf der Route
-   - Die Route wird geschlossen
+Danach die App unter <http://127.0.0.1:5000> öffnen. Die SQLite-Datenbank wird beim ersten Start automatisch unter `data/` angelegt.
 
-## GUI Features
+Optional kann in einer `.env`-Datei ein eigener `FLASK_SECRET_KEY` gesetzt werden. Mit `FLASK_DEBUG=1` startet die App im Debug-Modus.
 
-- **Routen-Übersicht**: Zeigt alle Routen mit Status (offen/geschlossen)
-- **Pokémon-Liste**: Alle Pokémon nach Routen gruppiert
-- **Neue Begegnung**: Dialog zum Hinzufügen neuer Begegnungen
-- **Pokémon markieren**: Markiert Pokémon als tot (mit Bestätigung)
+## Projektstruktur
 
-## Verwendung
+```
+run.py                  Einstiegspunkt, erstellt die Flask-App
+database/schema.sql     Datenbankschema (Trainer, Routen, Pokémon, Sperrliste, aktive Pokémon)
+src/
+  db_manager.py         Datenbankverbindung und Initialisierung
+  logic.py              Spiellogik: Begegnungen, Soul Link, Sperrliste, PokéAPI
+  routes.py             Flask-Routen und JSON-Endpunkte
+  tcg_api.py            Kartenbilder und -suche über die TCGdex-API
+  reset_db.py           Setzt die Datenbank komplett zurück
+webapp/
+  templates/            Jinja-Templates (Bootstrap 5)
+  static/               CSS und JavaScript
+```
 
-1. **Neue Begegnung hinzufügen**: 
-   - Wähle Route und Pokémon für alle drei Trainer
-   - Das System prüft automatisch auf doppelte Pokémon
+## Verwendete APIs
 
-2. **Pokémon als tot markieren**:
-   - Wähle eine Route und ein Pokémon
-   - Bestätige die Aktion (betrifft alle Pokémon der Route)
+- [PokéAPI](https://pokeapi.co/) – Pokémon-Daten und Entwicklungsketten
+- [TCGdex](https://tcgdex.dev/) – Pokémon-Sammelkarten
 
-3. **Übersichten anzeigen**:
-   - Routen, Pokémon und Trainer in separaten Tabs
+Pokémon und alle zugehörigen Namen sind Marken von Nintendo, Game Freak und The Pokémon Company. Dies ist ein inoffizielles Fan-Projekt.
+
+## Lizenz
+
+[MIT](LICENSE)

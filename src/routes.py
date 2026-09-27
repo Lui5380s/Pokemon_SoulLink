@@ -1,5 +1,4 @@
-from flask import render_template, request, jsonify, redirect, url_for, flash, session
-import json
+from flask import render_template, request, jsonify, redirect, url_for, flash, abort
 from src.tcg_api import TCGAPI
 
 # TCG-API initialisieren
@@ -67,7 +66,7 @@ def init_routes(app, pm):
                 # Füge Evolutionen zur Verbotsliste hinzu
                 evolutions = pm.get_banned_evolutions(pokemon_name)
                 for evolution in evolutions:
-                    if evolution != pokemon_name:
+                    if evolution != pokemon_name.lower():
                         pm.add_banned_pokemon(evolution, f"Evolution von {pokemon_name}")
             
             flash("Begegnung erfolgreich hinzugefügt!", "success")
@@ -118,7 +117,9 @@ def init_routes(app, pm):
     @app.route('/change_active_pokemon/<int:trainer_id>', methods=['GET', 'POST'])
     def change_active_pokemon(trainer_id):
         trainer = pm.get_trainer(trainer_id)
-        
+        if not trainer:
+            abort(404)
+
         if request.method == 'POST':
             pokemon_id = request.form.get('pokemon_id')
             
@@ -171,32 +172,30 @@ def init_routes(app, pm):
         card = tcg_api.get_pokemon_card(pokemon_name)
         if card:
             return jsonify({
-                'name': card.name,
-                'id': getattr(card, 'id', ''),
-                'image_url': tcg_api.get_card_image_url(card),
-                'set': getattr(card, 'set', {}),
-                'rarity': getattr(card, 'rarity', ''),
-                'artist': getattr(card, 'artist', '')
+                'name': card['name'],
+                'id': card['id'],
+                'image_url': tcg_api.get_card_image_url(card)
             })
         else:
             return jsonify({'error': 'Karte nicht gefunden'}), 404
-    
+
     @app.route('/api/tcg/image/<pokemon_name>')
     def get_tcg_image(pokemon_name):
-        """Gibt das Kartenbild als Base64-String zurück"""
-        image_base64 = tcg_api.get_card_image_base64(pokemon_name)
-        if image_base64:
-            return jsonify({'image': f"data:image/png;base64,{image_base64}"})
+        """Leitet auf das Kartenbild weiter, damit es direkt als <img src> nutzbar ist"""
+        card = tcg_api.get_pokemon_card(pokemon_name)
+        image_url = tcg_api.get_card_image_url(card, quality='low')
+        if image_url:
+            return redirect(image_url)
         else:
             return jsonify({'error': 'Bild nicht gefunden'}), 404
-    
+
     @app.route('/api/tcg/search/<query>')
     def search_tcg_cards(query):
         """Such nach Pokémon-Karten"""
         results = tcg_api.search_pokemon_cards(query)
         return jsonify([{
-            'name': card.name,
-            'id': getattr(card, 'id', ''),
+            'name': card['name'],
+            'id': card['id'],
             'image_url': tcg_api.get_card_image_url(card)
         } for card in results])
     

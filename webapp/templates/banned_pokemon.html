@@ -7,7 +7,7 @@
 <div class="list-group">
     {% for pokemon in banned_pokemon %}
     <div class="list-group-item">
-        <strong>{{ pokemon.pokemon_name }}</strong> - {{ pokemon.reason }}
+        <strong>{{ pokemon.pokemon_name | capitalize }}</strong> - {{ pokemon.reason }}
     </div>
     {% endfor %}
 </div>

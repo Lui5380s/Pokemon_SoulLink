@@ -1,15 +1,10 @@
 from src.db_manager import DBManager
 import sqlite3
-import os
 import requests
-import json
-from datetime import datetime
-from src.tcg_api import TCGAPI
 
 class PokemonManager:
     def __init__(self):
         self.db = DBManager()
-        self.tcg_api = TCGAPI()
     
     def add_trainer(self, name):
         with self.db.get_connection() as conn:
@@ -116,6 +111,24 @@ class PokemonManager:
                 'trainer_name': row[5]
             } for row in cursor.fetchall()]
     
+    def get_pokemon_by_trainer(self, trainer_id):
+        with self.db.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT p.*, r.name as route_name
+                FROM pokemon p
+                JOIN routes r ON p.route_id = r.id
+                WHERE p.trainer_id = ?
+            """, (trainer_id,))
+            return [{
+                'id': row[0],
+                'name': row[1],
+                'route_id': row[2],
+                'trainer_id': row[3],
+                'status': row[4],
+                'route_name': row[5]
+            } for row in cursor.fetchall()]
+
     def mark_pokemon_as_dead(self, pokemon_id):
         with self.db.get_connection() as conn:
             cursor = conn.cursor()
@@ -177,9 +190,10 @@ class PokemonManager:
         with self.db.get_connection() as conn:
             cursor = conn.cursor()
             try:
+                # Namen klein speichern, damit "Pikachu" und "pikachu" als gleich gelten
                 cursor.execute(
                     "INSERT INTO banned_pokemon (pokemon_name, reason) VALUES (?, ?)",
-                    (pokemon_name, reason)
+                    (pokemon_name.strip().lower(), reason)
                 )
                 conn.commit()
                 return True
@@ -191,7 +205,7 @@ class PokemonManager:
         """Prüft ob ein Pokémon verboten ist"""
         with self.db.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT id FROM banned_pokemon WHERE pokemon_name = ?", (pokemon_name,))
+            cursor.execute("SELECT id FROM banned_pokemon WHERE pokemon_name = ?", (pokemon_name.strip().lower(),))
             return cursor.fetchone() is not None
     
     def get_all_banned_pokemon(self):
@@ -245,7 +259,7 @@ class PokemonManager:
     def get_pokemon_data_from_api(self, pokemon_name):
         """Holt Daten von der PokeAPI für ein Pokémon"""
         try:
-            response = requests.get(f"https://pokeapi.co/api/v2/pokemon/{pokemon_name.lower()}")
+            response = requests.get(f"https://pokeapi.co/api/v2/pokemon/{pokemon_name.strip().lower()}", timeout=10)
             if response.status_code == 200:
                 data = response.json()
                 return {
@@ -257,7 +271,7 @@ class PokemonManager:
                     'weight': data['weight']
                 }
             return None
-        except:
+        except (requests.RequestException, KeyError, ValueError):
             return None
     
     def get_evolution_chain(self, pokemon_name):
@@ -270,7 +284,7 @@ class PokemonManager:
             
             # Species-URL holen
             species_url = f"https://pokeapi.co/api/v2/pokemon-species/{pokemon_data['id']}/"
-            species_response = requests.get(species_url)
+            species_response = requests.get(species_url, timeout=10)
             
             if species_response.status_code != 200:
                 return None
@@ -279,13 +293,13 @@ class PokemonManager:
             evolution_chain_url = species_data['evolution_chain']['url']
             
             # Evolutionskette holen
-            evolution_response = requests.get(evolution_chain_url)
+            evolution_response = requests.get(evolution_chain_url, timeout=10)
             if evolution_response.status_code != 200:
                 return None
             
             evolution_data = evolution_response.json()
             return self._parse_evolution_chain(evolution_data['chain'])
-        except:
+        except (requests.RequestException, KeyError, ValueError):
             return None
     
     def _parse_evolution_chain(self, chain):
@@ -334,21 +348,3 @@ class PokemonManager:
                 cursor.execute("INSERT INTO trainers (name) VALUES (?)", (name,))
             
             conn.commit()
-
-    def get_pokemon_card_info(self, pokemon_name):
-        """Holt Karteninformationen für ein Pokémon"""
-        return self.tcg_api.get_pokemon_card(pokemon_name)
-    
-    def get_pokemon_card_image_url(self, pokemon_name):
-        """Gibt die URL des Pokémon-Kartenbildes zurück"""
-        card = self.get_pokemon_card_info(pokemon_name)
-        if card:
-            return self.tcg_api.get_card_image_url(card)
-        return None
-    
-    def get_pokemon_card_image_base64(self, pokemon_name):
-        """Gibt das Pokémon-Kartenbild als Base64-String zurück"""
-        card = self.get_pokemon_card_info(pokemon_name)
-        if card:
-            return self.tcg_api.get_card_image_base64(card)
-        return None
